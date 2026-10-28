@@ -1,5 +1,7 @@
 # Tổng Hợp Báo Cáo Thu Qua Ngân Hàng
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/nguyenngocphuonggl-sys/Tong-hop-bao-cao)
+
 Ứng dụng quản trị và tổng hợp phân tích báo cáo thu qua ngân hàng / tổ chức trung gian thanh toán (TCTG).
 
 ## Cấu trúc dự án
