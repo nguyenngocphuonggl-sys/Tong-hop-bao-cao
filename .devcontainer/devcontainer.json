@@ -1,0 +1,12 @@
+{
+  "name": "Tong Hop Bao Cao - Python Flask",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "postCreateCommand": "pip install -r requirements.txt",
+  "forwardPorts": [5678],
+  "portsAttributes": {
+    "5678": {
+      "label": "Báo Cáo Thu Ngân Hàng",
+      "onAutoForward": "openBrowser"
+    }
+  }
+}
