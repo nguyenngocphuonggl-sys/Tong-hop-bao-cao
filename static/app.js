@@ -192,6 +192,12 @@ async function loadOverview() {
     const uncCh = ov.channels.find(c => c.id === 'unc') || { hd: 0, st: 0, pct_st: 0 };
     document.getElementById('kpiUncRatio').textContent = uncCh.pct_st.toFixed(1) + '%';
     document.getElementById('kpiUncValue').textContent = `${formatNumber(uncCh.hd)} HĐ • ${formatMoney(uncCh.st)}`;
+    const uncBar = document.getElementById('kpiUncBar');
+    if (uncBar) uncBar.style.width = Math.min(100, uncCh.pct_st) + '%';
+
+    // Donut Center Text
+    const dcVal = document.getElementById('donutCenterVal');
+    if (dcVal) dcVal.textContent = ov.digital_ratio_hd.toFixed(1) + '%';
 
     // Render Channels Doughnut Chart
     renderChannelsChart(ov.channels);
@@ -373,7 +379,7 @@ function renderChannelsChart(channels) {
 
     const labels = channels.map(c => c.name);
     const dataSt = channels.map(c => c.st);
-    const colors = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'];
+    const colors = ['#003B7A', '#10b981', '#f59e0b', '#8b5cf6'];
 
     state.charts.channels = new Chart(ctx, {
         type: 'doughnut',
@@ -382,16 +388,21 @@ function renderChannelsChart(channels) {
             datasets: [{
                 data: dataSt,
                 backgroundColor: colors,
-                borderWidth: 2,
-                borderColor: document.body.classList.contains('theme-dark') ? '#131d31' : '#ffffff'
+                borderWidth: 3,
+                borderColor: document.body.classList.contains('theme-dark') ? '#131d31' : '#ffffff',
+                hoverOffset: 6
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '72%',
             plugins: {
                 legend: { display: false },
                 tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                    padding: 12,
+                    cornerRadius: 8,
                     callbacks: {
                         label: function(context) {
                             const val = context.raw;
@@ -401,12 +412,11 @@ function renderChannelsChart(channels) {
                         }
                     }
                 }
-            },
-            cutout: '68%'
+            }
         }
     });
 
-    // Render custom legend
+    // Render custom legend with rich cards and progress bars
     const legEl = document.getElementById('channelsLegend');
     if (legEl) {
         legEl.innerHTML = '';
@@ -414,10 +424,19 @@ function renderChannelsChart(channels) {
             const item = document.createElement('div');
             item.className = 'legend-item';
             item.innerHTML = `
-                <div class="legend-dot" style="background: ${colors[idx]}"></div>
-                <div class="legend-info">
-                    <span class="legend-name">${c.name}</span>
-                    <span class="legend-val">${formatMoney(c.st)} (${c.pct_st.toFixed(1)}% Tiền • ${c.pct_hd.toFixed(1)}% HĐ)</span>
+                <div class="legend-header-line">
+                    <div class="legend-left">
+                        <span class="legend-dot" style="background: ${colors[idx]}"></span>
+                        <span class="legend-name">${c.name}</span>
+                    </div>
+                    <span class="legend-amt">${formatMoney(c.st)}</span>
+                </div>
+                <div class="legend-sub-line">
+                    <span class="legend-chip chip-money">${c.pct_st.toFixed(1)}% Tiền</span>
+                    <span class="legend-chip chip-invoice">${c.pct_hd.toFixed(1)}% HĐ (${formatNumber(c.hd)})</span>
+                </div>
+                <div class="legend-track">
+                    <div class="legend-fill" style="width: ${Math.min(100, c.pct_st)}%; background: ${colors[idx]}"></div>
                 </div>
             `;
             legEl.appendChild(item);
@@ -434,8 +453,8 @@ function renderTrendsChart(timeline) {
 
     const cfg = getChartColors();
     const labels = timeline.map(t => t.month.replace('Thang ', 'T'));
-    const dataSt = timeline.map(t => t.st_tong / 1e9); // Convert to Tỷ VNĐ
-    const dataHd = timeline.map(t => t.hd_tong);
+    const dataSt = timeline.map(t => +(t.st_tong / 1e9).toFixed(2)); // Doanh thu Tỷ VNĐ
+    const dataHd = timeline.map(t => t.hd_tong); // Số lượng HĐ
 
     state.charts.trends = new Chart(ctx, {
         type: 'bar',
@@ -445,31 +464,44 @@ function renderTrendsChart(timeline) {
                 {
                     label: 'Doanh thu (Tỷ VNĐ)',
                     data: dataSt,
-                    type: 'line',
-                    borderColor: '#2563eb',
-                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.3,
-                    yAxisID: 'y'
+                    type: 'bar',
+                    backgroundColor: 'rgba(0, 59, 122, 0.85)',
+                    hoverBackgroundColor: '#0056b3',
+                    borderRadius: 6,
+                    yAxisID: 'y',
+                    order: 2,
+                    barPercentage: 0.55
                 },
                 {
                     label: 'Số lượng HĐ',
                     data: dataHd,
-                    type: 'bar',
-                    backgroundColor: 'rgba(5, 150, 105, 0.65)',
-                    borderRadius: 4,
-                    yAxisID: 'y1'
+                    type: 'line',
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.35,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    yAxisID: 'y1',
+                    order: 1
                 }
             ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
             scales: {
                 x: {
                     grid: { display: false },
-                    ticks: { color: cfg.textColor }
+                    ticks: { color: cfg.textColor, font: { weight: 600 } }
                 },
                 y: {
                     type: 'linear',
@@ -478,6 +510,12 @@ function renderTrendsChart(timeline) {
                     ticks: {
                         color: cfg.textColor,
                         callback: v => v + ' tỷ'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Doanh thu (Tỷ VNĐ)',
+                        color: cfg.textColor,
+                        font: { size: 11, weight: 600 }
                     }
                 },
                 y1: {
@@ -487,12 +525,42 @@ function renderTrendsChart(timeline) {
                     ticks: {
                         color: cfg.textColor,
                         callback: v => (v / 1000).toFixed(0) + 'k'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Số lượng HĐ',
+                        color: cfg.textColor,
+                        font: { size: 11, weight: 600 }
                     }
                 }
             },
             plugins: {
                 legend: {
-                    labels: { color: cfg.textColor, font: { weight: 600 } }
+                    position: 'top',
+                    align: 'end',
+                    labels: {
+                        color: cfg.textColor,
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        font: { weight: 600, size: 12 },
+                        padding: 16
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                    titleFont: { size: 13, weight: 700 },
+                    bodyFont: { size: 12 },
+                    padding: 12,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(ctx) {
+                            if (ctx.dataset.type === 'line') {
+                                return ` Số lượng HĐ: ${formatNumber(ctx.raw)} HĐ`;
+                            } else {
+                                return ` Doanh thu: ${ctx.raw} tỷ VNĐ`;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -509,7 +577,16 @@ function renderUnitsRankingChart(ranks) {
     const cfg = getChartColors();
     const sorted = [...ranks].reverse(); // reverse for horizontal bar top at top
     const labels = sorted.map(u => u.unit);
-    const dataSt = sorted.map(u => u.st_tong / 1e9);
+    const dataSt = sorted.map(u => +(u.st_tong / 1e9).toFixed(2));
+
+    const totalCount = sorted.length;
+    const barColors = sorted.map((u, i) => {
+        const rank = totalCount - i;
+        if (rank === 1) return '#f59e0b'; // Gold for #1
+        if (rank === 2) return '#0056b3'; // Deep Navy for #2
+        if (rank === 3) return '#10b981'; // Emerald for #3
+        return 'rgba(0, 59, 122, 0.65)'; // Corporate Navy for rest
+    });
 
     state.charts.ranking = new Chart(ctx, {
         type: 'bar',
@@ -518,8 +595,9 @@ function renderUnitsRankingChart(ranks) {
             datasets: [{
                 label: 'Doanh thu (Tỷ VNĐ)',
                 data: dataSt,
-                backgroundColor: sorted.map((u, i) => i >= sorted.length - 3 ? '#2563eb' : '#60a5fa'),
-                borderRadius: 4
+                backgroundColor: barColors,
+                borderRadius: 5,
+                barPercentage: 0.7
             }]
         },
         options: {
@@ -533,14 +611,17 @@ function renderUnitsRankingChart(ranks) {
                 },
                 y: {
                     grid: { display: false },
-                    ticks: { color: cfg.textColor, font: { weight: 600 } }
+                    ticks: { color: cfg.textColor, font: { weight: 600, size: 11.5 } }
                 }
             },
             plugins: {
                 legend: { display: false },
                 tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                    padding: 12,
+                    cornerRadius: 8,
                     callbacks: {
-                        label: ctx => ` Doanh thu: ${ctx.raw.toFixed(2)} tỷ VNĐ`
+                        label: ctx => ` Doanh thu: ${ctx.raw} tỷ VNĐ`
                     }
                 }
             }
@@ -559,30 +640,41 @@ function renderBanksShareChart(banks) {
     const top6 = banks.slice(0, 6);
     const othersSt = banks.slice(6).reduce((acc, b) => acc + b.st_tong, 0);
 
-    const labels = [...top6.map(b => b.bank_short), 'Khác'];
+    const labels = [...top6.map(b => b.bank_short), 'Các đối tác khác'];
     const dataSt = [...top6.map(b => b.st_tong), othersSt];
-    const colors = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#0284c7', '#ea580c', '#94a3b8'];
+    const colors = ['#003B7A', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#ec4899', '#94a3b8'];
 
     state.charts.banksShare = new Chart(ctx, {
-        type: 'pie',
+        type: 'doughnut',
         data: {
             labels: labels,
             datasets: [{
                 data: dataSt,
                 backgroundColor: colors,
                 borderWidth: 2,
-                borderColor: document.body.classList.contains('theme-dark') ? '#131d31' : '#ffffff'
+                borderColor: document.body.classList.contains('theme-dark') ? '#131d31' : '#ffffff',
+                hoverOffset: 6
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '58%',
             plugins: {
                 legend: {
                     position: 'right',
-                    labels: { color: cfg.textColor, font: { size: 11, weight: 600 } }
+                    labels: {
+                        color: cfg.textColor,
+                        font: { size: 11.5, weight: 600 },
+                        padding: 12,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
                 },
                 tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                    padding: 12,
+                    cornerRadius: 8,
                     callbacks: {
                         label: function(ctx) {
                             const val = ctx.raw;
