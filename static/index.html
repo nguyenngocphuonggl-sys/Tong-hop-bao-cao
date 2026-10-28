@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVN Lâm Đồng - Tổng Hợp Báo Cáo Thu Qua Ngân Hàng & TCTG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <!-- Local Chart.js for 100% Offline Capability -->
+    <script src="/js/chart.umd.min.js"></script>
+</head>
+<body class="theme-light">
+    <!-- Top Header Bar -->
+    <header class="app-header">
+        <div class="header-left">
+            <div class="brand-badge">
+                <span class="bolt-icon">⚡</span>
+                <div class="brand-text">
+                    <span class="sub-brand">EVN SPC • PC LÂM ĐỒNG</span>
+                    <span class="main-brand">EVN-BankReport Pro</span>
+                </div>
+            </div>
+            <div class="divider-v"></div>
+            <div class="header-title-box">
+                <h1 class="header-title">HỆ THỐNG QUẢN LÝ & TỔNG HỢP BÁO CÁO THU TIỀN ĐIỆN QUA NGÂN HÀNG & TCTG</h1>
+                <span class="header-subtitle">Dữ liệu nguồn tự động hóa từ Ngan hang 2026.xlsm & Hệ thống CMIS</span>
+            </div>
+        </div>
+
+        <div class="header-right">
+            <div class="live-clock-badge" id="liveClockBadge">
+                <span class="dot-online"></span>
+                <span id="liveClockText">08/10/2026 09:45</span>
+            </div>
+
+            <button class="btn btn-outline" id="btnReloadData" title="Làm mới lại dữ liệu từ Excel">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                <span>Làm mới</span>
+            </button>
+
+            <button class="btn btn-primary" id="btnOpenUploadModal" title="Nạp file tháng mới hoặc file kết quả SQL">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Nạp dữ liệu mới</span>
+            </button>
+
+            <button class="btn-theme-toggle" id="btnThemeToggle" title="Chuyển chế độ Sáng / Tối">
+                <span class="icon-theme">🌙</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Global Control & Filter Bar -->
+    <section class="filter-bar">
+        <div class="filter-group">
+            <label class="filter-label" for="selectMonth">KỲ BÁO CÁO</label>
+            <div class="select-wrapper">
+                <select id="selectMonth" class="form-select">
+                    <option value="Thang 09">Tháng 09/2026 (Mới nhất)</option>
+                    <option value="Lũy kế 9 tháng">Lũy kế 9 tháng 2026</option>
+                    <option value="Thang 08">Tháng 08/2026</option>
+                    <option value="Thang 07">Tháng 07/2026</option>
+                    <option value="Thang 06">Tháng 06/2026</option>
+                    <option value="Thang 05">Tháng 05/2026</option>
+                    <option value="Thang 04">Tháng 04/2026</option>
+                    <option value="Thang 03">Tháng 03/2026</option>
+                    <option value="Thang 02">Tháng 02/2026</option>
+                    <option value="Thang 01">Tháng 01/2026</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <label class="filter-label" for="selectUnit">ĐƠN VỊ ĐIỆN LỰC</label>
+            <div class="select-wrapper">
+                <select id="selectUnit" class="form-select">
+                    <option value="TOÀN CÔNG TY">Toàn Công ty (12 Điện lực)</option>
+                    <option value="ĐÀ LẠT">Điện lực Đà Lạt</option>
+                    <option value="BẢO LỘC">Điện lực Bảo Lộc</option>
+                    <option value="ĐƠN DƯƠNG">Điện lực Đơn Dương</option>
+                    <option value="DI LINH">Điện lực Di Linh</option>
+                    <option value="ĐỨC TRỌNG">Điện lực Đức Trọng</option>
+                    <option value="LÂM HÀ">Điện lực Lâm Hà</option>
+                    <option value="ĐẠ HUOAI">Điện lực Đạ Huoai</option>
+                    <option value="ĐẠ TẺH">Điện lực Đạ Tẻh</option>
+                    <option value="CÁT TIÊN">Điện lực Cát Tiên</option>
+                    <option value="BẢO LÂM">Điện lực Bảo Lâm</option>
+                    <option value="LANGBIANG">Điện lực Lang Biang</option>
+                    <option value="ĐAM RÔNG">Điện lực Đam Rông</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <label class="filter-label" for="selectCategory">NHÓM ĐỐI TÁC THU HỘ</label>
+            <div class="select-wrapper">
+                <select id="selectCategory" class="form-select">
+                    <option value="ALL">Tất cả đối tác (22 đơn vị)</option>
+                    <option value="Big 4 Ngân hàng">Nhóm Big 4 Ngân hàng (VCB, CTG, BIDV, Agribank)</option>
+                    <option value="Ví điện tử & Fintech">Nhóm Ví điện tử & Fintech (MoMo, VNPay, ZaloPay...)</option>
+                    <option value="Ngân hàng TMCP khác">Nhóm Ngân hàng TMCP khác</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="filter-actions">
+            <button class="btn btn-export-doc" id="btnExportDocx" title="Xuất báo cáo thuyết minh Word chuẩn thể thức EVN">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span>Xuất Word (.docx)</span>
+            </button>
+            <button class="btn btn-export-xls" id="btnExportExcel" title="Xuất báo cáo tổng hợp Excel chuẩn định dạng">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="17"/><line x1="16" y1="13" x2="8" y2="17"/></svg>
+                <span>Xuất Excel (.xlsx)</span>
+            </button>
+            <button class="btn btn-outline" id="btnPrintReport" title="In trực tiếp hoặc Lưu file PDF">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                <span>In / PDF</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- Top KPI Cards Grid -->
+    <main class="main-content">
+        <section class="kpi-grid">
+            <!-- KPI 1: Tổng Doanh Thu -->
+            <div class="kpi-card card-revenue">
+                <div class="kpi-header">
+                    <span class="kpi-tag">TỔNG THU QUA NGÂN HÀNG & TCTG</span>
+                    <div class="kpi-icon-wrap bg-blue-subtle">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-value-lg" id="kpiRevenue">-- VNĐ</div>
+                    <div class="kpi-subtext" id="kpiRevenueSub">Đang cập nhật...</div>
+                </div>
+                <div class="kpi-footer" id="kpiRevenueMom">
+                    <span class="badge-growth positive">+0.00%</span>
+                    <span class="growth-label">so với tháng trước</span>
+                </div>
+            </div>
+
+            <!-- KPI 2: Tổng Hóa Đơn -->
+            <div class="kpi-card card-invoices">
+                <div class="kpi-header">
+                    <span class="kpi-tag">TỔNG SỐ HÓA ĐƠN THU ĐƯỢC</span>
+                    <div class="kpi-icon-wrap bg-emerald-subtle">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    </div>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-value-lg" id="kpiInvoices">-- HĐ</div>
+                    <div class="kpi-subtext" id="kpiInvoicesSub">Khách hàng thanh toán không tiền mặt</div>
+                </div>
+                <div class="kpi-footer" id="kpiInvoicesMom">
+                    <span class="badge-growth positive">+0.00%</span>
+                    <span class="growth-label">so với tháng trước</span>
+                </div>
+            </div>
+
+            <!-- KPI 3: Kênh Số Hóa App/Ví -->
+            <div class="kpi-card card-digital">
+                <div class="kpi-header">
+                    <span class="kpi-tag">KÊNH SỐ HÓA (APP, VÍ, TỰ ĐỘNG)</span>
+                    <div class="kpi-icon-wrap bg-purple-subtle">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                    </div>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-value-lg" id="kpiDigitalRatio">--%</div>
+                    <div class="kpi-subtext" id="kpiDigitalValue">-- HĐ • -- VNĐ</div>
+                </div>
+                <div class="kpi-footer">
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar-fill" id="kpiDigitalBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI 4: Kênh Doanh Nghiệp UNC -->
+            <div class="kpi-card card-unc">
+                <div class="kpi-header">
+                    <span class="kpi-tag">KÊNH DOANH NGHIỆP (UNC) & UNT</span>
+                    <div class="kpi-icon-wrap bg-amber-subtle">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                    </div>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-value-lg" id="kpiUncRatio">--%</div>
+                    <div class="kpi-subtext" id="kpiUncValue">-- HĐ • -- VNĐ</div>
+                </div>
+                <div class="kpi-footer">
+                    <span class="text-subtle">Phục vụ khách hàng Doanh nghiệp & CQHCSN</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs-wrapper">
+            <div class="tabs-list">
+                <button class="tab-btn active" data-tab="tab-overview">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+                    <span>1. Tổng Quan & Biểu Đồ Minh Họa</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-units">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    <span>2. Chi Tiết 12 Điện Lực</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-banks">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="5 6 12 3 19 6"/><line x1="4" y1="10" x2="4" y2="21"/><line x1="20" y1="10" x2="20" y2="21"/><line x1="8" y1="14" x2="8" y2="17"/><line x1="12" y1="14" x2="12" y2="17"/><line x1="16" y1="14" x2="16" y2="17"/></svg>
+                    <span>3. Chi Tiết Ngân Hàng & TCTG</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-analysis">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <span>4. Báo Cáo Phân Tích Chuyên Sâu</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-manager">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>5. Nạp & Quản Trị Dữ Liệu</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- TAB 1: TỔNG QUAN & BIỂU ĐỒ -->
+        <div class="tab-pane active" id="tab-overview">
+            <div class="charts-grid">
+                <!-- Biểu đồ 1: Cơ cấu 4 Kênh Thu -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title-wrap">
+                            <h3 class="chart-title">Cơ Cấu Phương Thức Thanh Toán</h3>
+                            <span class="chart-sub">Tỷ trọng dòng tiền giữa App/Ví, UNC, UNT và Quầy</span>
+                        </div>
+                        <div class="badge-tag">Theo Doanh Thu & HĐ</div>
+                    </div>
+                    <div class="chart-body doughnut-chart-body">
+                        <div class="chart-canvas-wrap">
+                            <canvas id="chartChannels"></canvas>
+                        </div>
+                        <div class="custom-legend" id="channelsLegend"></div>
+                    </div>
+                </div>
+
+                <!-- Biểu đồ 2: Xu hướng 9 Tháng -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title-wrap">
+                            <h3 class="chart-title">Diễn Biến Doanh Thu & Hóa Đơn Qua 9 Tháng 2026</h3>
+                            <span class="chart-sub">Tăng trưởng thu tiền điện qua ngân hàng toàn Công ty</span>
+                        </div>
+                        <div class="badge-tag">Chuỗi thời gian</div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chartTrends"></canvas>
+                    </div>
+                </div>
+
+                <!-- Biểu đồ 3: Xếp hạng 12 Điện Lực -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title-wrap">
+                            <h3 class="chart-title">So Sánh Doanh Số 12 Đơn Vị Điện Lực</h3>
+                            <span class="chart-sub">Xếp hạng giá trị tiền thu được qua ngân hàng/TGTT</span>
+                        </div>
+                        <div class="badge-tag">Xếp hạng doanh thu</div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chartUnitsRanking"></canvas>
+                    </div>
+                </div>
+
+                <!-- Biểu đồ 4: Thị phần Ngân hàng & Fintech -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title-wrap">
+                            <h3 class="chart-title">Thị Phần Top Đối Tác Thu Hộ Lớn Nhất</h3>
+                            <span class="chart-sub">Tỷ trọng tiền và số lượng hóa đơn theo từng đối tác</span>
+                        </div>
+                        <div class="badge-tag">Top Ngân hàng / Ví</div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="chartBanksShare"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: CHI TIẾT 12 ĐIỆN LỰC -->
+        <div class="tab-pane" id="tab-units">
+            <div class="data-table-container">
+                <div class="table-toolbar">
+                    <div class="toolbar-left">
+                        <h3 class="table-title">Bảng Tổng Hợp Chi Tiết 12 Điện Lực Trực Thuộc</h3>
+                        <span class="table-subtitle">Dữ liệu phân rã chi tiết theo từng kênh thu hộ</span>
+                    </div>
+                    <div class="toolbar-right">
+                        <input type="text" class="search-input" id="searchUnitTable" placeholder="Tìm kiếm Điện lực...">
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table" id="tableUnitsMatrix">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Đơn Vị Điện Lực</th>
+                                <th class="text-right">HĐ App/Ví</th>
+                                <th class="text-right">Tiền App/Ví (VNĐ)</th>
+                                <th class="text-right">HĐ UNC</th>
+                                <th class="text-right">Tiền UNC (VNĐ)</th>
+                                <th class="text-right">Tổng Số HĐ</th>
+                                <th class="text-right">Tổng Tiền Thu (VNĐ)</th>
+                                <th class="text-right">Tỷ Lệ Số Hóa (%)</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyUnitsMatrix">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                        <tfoot id="tfootUnitsMatrix">
+                            <!-- Populated dynamically -->
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: CHI TIẾT NGÂN HÀNG & TCTG -->
+        <div class="tab-pane" id="tab-banks">
+            <div class="data-table-container">
+                <div class="table-toolbar">
+                    <div class="toolbar-left">
+                        <h3 class="table-title">Bảng Phân Tích Chi Tiết 22 Ngân Hàng & Tổ Chức TGTT</h3>
+                        <span class="table-subtitle">Bao gồm nhóm Big 4 Ngân hàng, Ví điện tử & Fintech và NHTMCP khác</span>
+                    </div>
+                    <div class="toolbar-right">
+                        <input type="text" class="search-input" id="searchBankTable" placeholder="Tìm đối tác thu hộ...">
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table" id="tableBanksMatrix">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Đối Tác Thu Hộ</th>
+                                <th>Nhóm Đối Tác</th>
+                                <th class="text-right">HĐ Thu</th>
+                                <th class="text-right">Thị Phần HĐ (%)</th>
+                                <th class="text-right">Tổng Số Tiền (VNĐ)</th>
+                                <th class="text-right">Thị Phần Tiền (%)</th>
+                                <th class="text-right">Kênh Chủ Lực</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyBanksMatrix">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                        <tfoot id="tfootBanksMatrix">
+                            <!-- Populated dynamically -->
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: BÁO CÁO PHÂN TÍCH CHUYÊN SÂU -->
+        <div class="tab-pane" id="tab-analysis">
+            <div class="analysis-document-card" id="printableAnalysis">
+                <div class="doc-header">
+                    <div class="doc-header-left">
+                        <p class="font-bold">TỔNG CÔNG TY ĐIỆN LỰC MIỀN NAM</p>
+                        <p class="font-bold">CÔNG TY ĐIỆN LỰC LÂM ĐỒNG</p>
+                        <p>PHÒNG TÀI CHÍNH KẾ TOÁN</p>
+                    </div>
+                    <div class="doc-header-right">
+                        <p class="font-bold">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                        <p class="font-bold">Độc lập - Tự do - Hạnh phúc</p>
+                        <p class="italic text-muted" id="docDate">Lâm Đồng, ngày 08 tháng 10 năm 2026</p>
+                    </div>
+                </div>
+
+                <div class="doc-title-block">
+                    <h2 class="doc-title" id="docMainTitle">BÁO CÁO PHÂN TÍCH TÌNH HÌNH THU TIỀN ĐIỆN QUA NGÂN HÀNG & TRUNG GIAN THANH TOÁN</h2>
+                    <p class="doc-subtitle" id="docPeriodSubtitle">Kỳ báo cáo: Tháng 09/2026</p>
+                </div>
+
+                <div class="doc-section">
+                    <h3 class="section-title">1. Tổng Quan Chung Tình Hình Thực Hiện</h3>
+                    <div class="section-content" id="docExecutiveSummary">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="doc-section">
+                    <h3 class="section-title">2. Cơ Cấu Và Xu Hướng Số Hóa Phương Thức Thanh Toán</h3>
+                    <div class="section-content" id="docChannelAnalysis">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="doc-section">
+                    <h3 class="section-title">3. Tình Hình Triển Khai Tại 12 Điện Lực Trực Thuộc</h3>
+                    <div class="section-content" id="docUnitAnalysis">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="doc-section">
+                    <h3 class="section-title">4. Đánh Giá Mạng Lưới Đối Tác Ngân Hàng & Fintech</h3>
+                    <div class="section-content" id="docBankAnalysis">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="doc-section">
+                    <h3 class="section-title">5. Tồn Tại, Vướng Mắc & Giải Pháp Điều Hành Trọng Tâm</h3>
+                    <ul class="recommendation-list" id="docRecommendations">
+                        <!-- Populated dynamically -->
+                    </ul>
+                </div>
+
+                <div class="doc-signatures">
+                    <div class="sig-block">
+                        <p class="sig-title">PHÒNG TÀI CHÍNH KẾ TOÁN</p>
+                        <p class="sig-sub">Trưởng phòng</p>
+                        <div class="sig-space"></div>
+                    </div>
+                    <div class="sig-block">
+                        <p class="sig-title">NGƯỜI LẬP BÁO CÁO</p>
+                        <p class="sig-sub">Chuyên viên tổng hợp</p>
+                        <div class="sig-space"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: NẠP & QUẢN TRỊ DỮ LIỆU -->
+        <div class="tab-pane" id="tab-manager">
+            <div class="manager-grid">
+                <div class="manager-card upload-box">
+                    <h3 class="manager-card-title">Nạp File Báo Cáo Tháng Mới Hoặc File SQL Raw</h3>
+                    <p class="manager-card-desc">Hệ thống tự động nhận diện và cập nhật vào cơ sở dữ liệu</p>
+                    
+                    <div class="drop-zone" id="dropZone">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <p class="drop-text">Kéo thả file Excel vào đây hoặc click để chọn file</p>
+                        <span class="drop-hint">Hỗ trợ: .xlsx, .xlsm (File SQL CMIS hoặc file Ngan hang 2026.xlsm mới)</span>
+                        <input type="file" id="fileInput" accept=".xlsx,.xlsm" style="display:none">
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label class="form-label" for="inputMonthLabel">Nhãn kỳ báo cáo (Nếu nạp file SQL):</label>
+                        <input type="text" id="inputMonthLabel" class="form-input" placeholder="Ví dụ: Thang 10 (để trống sẽ tự nhận diện)">
+                    </div>
+
+                    <div class="upload-btn-wrap">
+                        <button class="btn btn-primary btn-block" id="btnUploadSubmit">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span>Tiến hành nạp dữ liệu</span>
+                        </button>
+                    </div>
+
+                    <div class="upload-status" id="uploadStatusBox" style="display:none"></div>
+                </div>
+
+                <div class="manager-card info-box">
+                    <h3 class="manager-card-title">Thông Tin Hệ Thống Dữ Liệu</h3>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-label">File nguồn chính:</span>
+                            <span class="info-val font-mono">Ngan hang 2026.xlsm</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Dung lượng file:</span>
+                            <span class="info-val">~4.0 MB</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Số đơn vị quản lý:</span>
+                            <span class="info-val font-bold">12 Điện lực</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Số đối tác thu hộ:</span>
+                            <span class="info-val font-bold">22 Ngân hàng & Tổ chức TGTT</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Các kỳ sẵn có:</span>
+                            <span class="info-val font-bold text-emerald">Tháng 01 → Tháng 09/2026 & Lũy kế</span>
+                        </div>
+                    </div>
+
+                    <div class="quick-action-box mt-4">
+                        <h4 class="font-bold mb-2">Thao tác dữ liệu nhanh:</h4>
+                        <button class="btn btn-outline btn-block mb-2" id="btnFlushCache">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                            <span>Đọc lại toàn bộ từ file gốc Ngan hang 2026.xlsm</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Upload Modal -->
+    <div class="modal-backdrop" id="uploadModal" style="display:none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Nạp Dữ Liệu Tháng Mới / File SQL</h3>
+                <button class="btn-close-modal" id="btnCloseUploadModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="drop-zone" id="modalDropZone">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <p class="drop-text">Chọn hoặc kéo file Excel vào đây</p>
+                    <input type="file" id="modalFileInput" accept=".xlsx,.xlsm" style="display:none">
+                </div>
+                <div class="selected-file-info mt-2" id="modalFileInfo" style="display:none"></div>
+                <div class="form-group mt-3">
+                    <label class="form-label" for="modalMonthInput">Tên kỳ (Ví dụ: Thang 10):</label>
+                    <input type="text" id="modalMonthInput" class="form-input" placeholder="Tự động nhận diện nếu để trống">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="btnCancelModal">Hủy</button>
+                <button class="btn btn-primary" id="btnConfirmUpload">Bắt đầu nạp</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
